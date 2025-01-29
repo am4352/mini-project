@@ -5,7 +5,8 @@ const postSchema = mongoose.Schema({
         ref: 'user'
     },
     date: {
-        type: Date
+        type: Date,
+        default : Date.now
     },
     content: String,
     like: {

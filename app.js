@@ -18,6 +18,9 @@ app.get("/", (req, res) => {
 app.get("/login", (req, res) => {
     res.render("login")
 })
+app.get("/profile", (req, res) => {
+    res.render("profile")
+})
 
 app.post("/register", async(req, res) => {
     let { name, username, email, password,age } = req.body;
@@ -43,7 +46,7 @@ app.post("/register", async(req, res) => {
 })
 
 app.post("/login", async(req, res) => {
-    let { email, password } = req.body;
+    let { email, password , name } = req.body;
     let user = await userModel.findOne({ email });
     if (!user) {
         return res.send("something went wrong")
@@ -53,7 +56,7 @@ app.post("/login", async(req, res) => {
         if (result) {
             let token = jwt.sign({ email: email, userid: user._id }, "anuj")
             res.cookie("token", token)
-            res.status(200).render("profile") 
+            res.status(200).render("profile", {user}) 
        }
        else {
             return res.send("cant login")
@@ -61,6 +64,29 @@ app.post("/login", async(req, res) => {
                
     })
 
+})
+app.post("/post", async (req, res) => {
+    
+    let { email, password} = req.body;
+    console.log("Request Body:", req.body);
+    console.log("Email received:", req.body.email); 
+    let user = await userModel.findOne({email});
+    if (!user) {
+        return res.status(404).send("User not found"); // Send error if user is not found
+    }
+    let { content } = req.body;
+    let post = await postModel.create({ 
+        user: user_id,
+        content
+    });
+  user.posts.push(post._id)
+    await user.save();
+   res.render("profile" ,{user})
+
+})
+app.get("/logout", (req, res) => {
+    res.clearCookie("token");
+    res.render("index")
 })
 
 app.listen(3000, () => {
