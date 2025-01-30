@@ -3,7 +3,12 @@ const app = express();
 const cookieparser = require("cookie-parser")
 const userModel = require("./models/user")
 const postModel = require("./models/post")
+const crypto = require("crypto")
 const bcrypt = require("bcrypt")
+
+const path = require("path")
+const multer = require("multer")
+const upload = multer({ dest: 'uploads/' })
 app.set("view engine", "ejs");
 app.set("views", "./views");
 app.use(express.urlencoded({ extended: true }));
@@ -11,16 +16,40 @@ const jwt = require("jsonwebtoken")
 app.use(express.json());
 app.use(cookieparser());
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) { // all the data is present in file
+        cb(null, './public/images/uploads')
+    },
+    filename: function (req, file, cb) {
+        crypto.randomBytes(12, (err, bytes) => {
+            const fn = bytes.toString("hex") + path.extname(file.originalname);
+            cb(null, fn)
+        })       
+    }
+})
+
+const Upload = multer({ storage: storage })
 
 app.get("/", (req, res) => {
      res.render("index")    
 })
+
+
 app.get("/login", (req, res) => {
     res.render("login")
 })
+
 app.get("/profile", (req, res) => {
     res.render("profile")
 })
+
+app.get("/test", (req, res) => {
+    res.render("test")
+})
+app.post("/upload", Upload.single("text"), (req, res) => {
+    console.log(req.file);    // req.body is only available in post method
+})
+
 
 app.post("/register", async(req, res) => {
     let { name, username, email, password,age } = req.body;
